@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello React JSX</title>
+    <!-- React la librairie  attention libraire utiliser en développement prendre d'autre cdn si production voir le site react-->
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+
+    <!-- React DOM pour monter l'arbre React dans le DOM -->
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+
+    <!-- Il faut le compilateur du JSX pour transformer le JSX en JS que le navigateur comprend -->
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+  </head>
+
+  <body>
+    <!-- Point d'entrée du montage de l'arbre -->
+    <div id="root"></div>
+
+    <!-- cible ce qu'il faut compiler pour babel  -->
+    <script type="text/babel">
+      const qcm = [
+        {
+          id: 1,
+          question: "Q1 React est-il un framework ?",
+          info:
+            "Répondez en choisissant une seule et bonne réponse ci-dessous :",
+          responses: ["Oui", "Non"]
+        },
+        {
+          id: 2,
+          question: "Q2 JSX c'est quoi ?",
+          info:
+            "Répondez en choisissant une seule et bonne réponse ci-dessous :",
+          responses: [
+            "JSX est un langage compilé",
+            "JSX est un sur-ensemble développé par Facebook"
+          ]
+        },
+        {
+          id: 3,
+          question: "Q3 Symfony design pattern.",
+          info:
+            "Sélectionnez ci-dessous dans la liste la bonne définition caractérisant ce framework PHP",
+          responses: ["MMV", "MVC", "MMVV"]
+        }
+      ];
+      /*class File extends React.Component {
+                            render() {
+                            return (
+                              <React.Fragment>
+                                <h1>File</h1>
+                              </React.Fragment>
+                            );
+                          }
+                        }*/
+      class Radio extends React.Component {
+        render() {
+          return (
+            <React.Fragment>
+              <h3>{this.props.qcm.question}</h3>
+              <p>{this.props.qcm.info}</p>
+              {this.props.children}
+            </React.Fragment>
+          );
+        }
+      }
+      class Select extends React.Component {
+        handleChange = event => {
+          this.props.onInputChange(event);
+        };
+
+        render() {
+          return (
+            <React.Fragment>
+              <select
+                name={this.props.name}
+                id={this.props.id}
+                multiple={this.props.multiple}
+                onChange={this.handleChange}
+              >
+                <option value=''>--Please choose an option--</option>
+                <option value='dog'>Dog</option>
+                <option value='cat'>Cat</option>
+              </select>
+            </React.Fragment>
+          );
+        }
+      }
+
+      class Input extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {
+            name: "",
+            value: "",
+            type: "",
+            id: ""
+            //emailRegexp: /^[a-zA-Z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}$/,
+            //error: "",
+          };
+        }
+        handleChange = event => {
+          //console.log("event : ", event.target);
+          const { id, name, value, type } = event.target;
+          this.state.id = id;
+          this.state.name = name;
+          this.state.value = value;
+          this.state.type = type;
+          this.setState({
+            id: this.state.id,
+            name: this.state.name,
+            value: this.state.value,
+            type: this.state.type
+          });
+          this.props.onInputChange(this.state);
+        };
+
+        render() {
+          return (
+            <React.Fragment>
+              <input
+                type={this.props.type}
+                id={this.props.id}
+                name={this.props.name}
+                value={this.props.value ? this.props.value : this.state.value}
+                checked={this.props.checked}
+                onChange={this.handleChange}
+                disabled={this.props.isDisabled}
+              />
+              <label htmlFor={this.props.label}>{this.props.label}</label>
+            </React.Fragment>
+          );
+        }
+      }
+      class Form extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {
+            message: "",
+            invalid: true,
+            selectedOption: 0,
+            data: []
+          };
+        }
+
+        handleInputChange = event => {
+          //console.log("target input : ", event.id);
+          if (event) {
+            /*if (this.state.data.indexOf(event) === -1) {
+              this.state.data.push(event);
+            } else {
+              const index = this.state.data.indexOf(event.id);
+              this.state.data.splice(index, 1);
+              this.state.data.push(event);
+            }*/
+            this.setState({
+              invalid: false
+              //data: this.state.data
+            });
+            if (event.type === "radio") {
+              this.setState({
+                selectedOption: parseInt(event.value, 10)
+              });
+            }
+          }
+        };
+
+        handleFormSubmit = event => {
+          event.preventDefault();
+          //console.log("target submit : ", event.target);
+          this.setState({
+            invalid: true,
+            selectedOption: 0
+          });
+
+          this.props.onChangeFormStep();
+        };
+
+        render() {
+          return (
+            <form onSubmit={this.handleFormSubmit}>
+              <h1>{this.props.title}</h1>
+              <h2>
+                {this.props.step !== this.props.qcm.length + 1
+                  ? "Étapes : " +
+                    this.props.step +
+                    " / " +
+                    this.props.qcm.length
+                  : "Résultat : "}
+              </h2>
+
+              {this.state.message && <p>{this.state.message}</p>}
+
+              {this.props.step === 1 && (
+                <React.Fragment>
+                  <Input
+                    type='email'
+                    id='email'
+                    name='email'
+                    onInputChange={e => this.handleInputChange(e)}
+                  />
+                  <Radio qcm={this.props.qcm[0]}>
+                    {this.props.qcm[0].responses.map((response, i) => (
+                      <Input
+                        key={i}
+                        type='radio'
+                        id='qcm[0]'
+                        name={response}
+                        value={i.toString()}
+                        checked={this.state.selectedOption === i && true}
+                        label={response}
+                        onInputChange={e => this.handleInputChange(e)}
+                      />
+                    ))}
+                  </Radio>
+                </React.Fragment>
+              )}
+
+              {this.props.step === 2 && (
+                <React.Fragment>
+                  <Radio qcm={this.props.qcm[1]}>
+                    {this.props.qcm[1].responses.map((response, i) => (
+                      <Input
+                        key={i}
+                        type='radio'
+                        id='qcm[1]'
+                        name={response}
+                        value={i.toString()}
+                        checked={this.state.selectedOption === i && true}
+                        label={response}
+                        onInputChange={e => this.handleInputChange(e)}
+                      />
+                    ))}
+                  </Radio>
+                </React.Fragment>
+              )}
+
+              {this.props.step === 3 && (
+                <React.Fragment>
+                  <Select
+                    name='single'
+                    id='single'
+                    onInputChange={e => this.handleInputChange(e)}
+                  />
+                  <Select
+                    name='multi'
+                    id='multi'
+                    multiple={true}
+                    onInputChange={e => this.handleInputChange(e)}
+                  />
+                </React.Fragment>
+              )}
+
+              <Input
+                type='submit'
+                id='submit'
+                name='submit'
+                isDisabled={this.state.invalid}
+                value={
+                  this.props.step !== this.props.qcm.length + 1
+                    ? "Valider"
+                    : "Recommencer"
+                }
+              />
+            </form>
+          );
+        }
+      }
+
+      class Wrapper extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = { step: 1 };
+        }
+
+        handleWrapperChange = () => {
+          if (this.state.step === qcm.length + 1) {
+            this.state.step = 1;
+            this.setState({
+              step: this.state.step
+            });
+          } else {
+            this.state.step++;
+            this.setState({
+              step: this.state.step
+            });
+          }
+        };
+
+        render() {
+          const step = this.state;
+          return (
+            <React.Fragment>
+              <Form
+                title="Amazing Coconut's Recipe or How to Make a Laser Saber with Toothpaste :"
+                qcm={qcm}
+                step={this.state.step}
+                onChangeFormStep={this.handleWrapperChange}
+              />
+            </React.Fragment>
+          );
+        }
+      }
+      ReactDOM.render(<Wrapper />, document.getElementById("root"));
+    </script>
+  </body>
+</html>
